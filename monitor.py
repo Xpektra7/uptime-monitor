@@ -4,16 +4,21 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 import smtplib
 from email.message import EmailMessage
+import os
+
+email = os.environ["EMAIL_USER"]
+password = os.environ["EMAIL_PASS"]
+
 
 def send_email(subject, body):
     msg = EmailMessage()
     msg["Subject"] = subject
-    msg["From"] = "xpektra7@gmail.com"
+    msg["From"] = email
     msg["To"] = "ogungbayiimran@gmail.com"
     msg.set_content(body)
 
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
-        smtp.login("xpektra7@gmail.com", "xktr dqxo aibp kska")
+        smtp.login(email, password)
         smtp.send_message(msg)
 
 
