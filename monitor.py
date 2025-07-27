@@ -4,11 +4,13 @@ from datetime import datetime
 from bs4 import BeautifulSoup
 import smtplib
 from email.message import EmailMessage
+from dotenv import load_dotenv
 import os
 
-email = os.environ["EMAIL_USER"]
-password = os.environ["EMAIL_PASS"]
+load_dotenv()
 
+email = os.environ.get("EMAIL_USER")
+password = os.environ.get("EMAIL_PASS")
 
 def send_email(subject, body):
     msg = EmailMessage()
