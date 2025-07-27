@@ -44,7 +44,7 @@ def save_flags():
         json.dump(flags, f)
 
 # Uptime logging
-log_file = "uptime_log.csv"
+log_file = "logs/uptime_log.csv"
 def log_status(status, info=""):
     with open(log_file, "a") as f:
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
