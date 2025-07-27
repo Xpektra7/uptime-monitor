@@ -6,60 +6,91 @@ import smtplib
 from email.message import EmailMessage
 from dotenv import load_dotenv
 import os
+import json
+from pathlib import Path
 
+# Load .env
 load_dotenv()
-
 email = os.environ.get("EMAIL_USER")
 password = os.environ.get("EMAIL_PASS")
 
+# Email sending
 def send_email(subject, body):
     msg = EmailMessage()
     msg["Subject"] = subject
     msg["From"] = email
     msg["To"] = "ogungbayiimran@gmail.com"
     msg.set_content(body)
-
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
         smtp.login(email, password)
         smtp.send_message(msg)
 
+# Flags
+flags_file = Path("flags.json")
+flags = {"login_alert_sent": False, "down_alert_sent": False}
 
-url = "https://eportal.oauife.edu.ng"
+if flags_file.exists():
+    try:
+        with open(flags_file, "r") as f:
+            content = f.read().strip()
+            if content:
+                flags.update(json.loads(content))
+    except Exception:
+        print("⚠️ Warning: flags.json is invalid. Resetting flags.")
+        pass
+
+def save_flags():
+    with open(flags_file, "w") as f:
+        json.dump(flags, f)
+
+# Uptime logging
 log_file = "uptime_log.csv"
-
 def log_status(status, info=""):
     with open(log_file, "a") as f:
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         f.write(f"{now},{status},{info}\n")
 
+# Monitor loop
 while True:
     try:
+        url = "https://eportal.oauife.edu.ng"
         response = requests.get(url, timeout=10)
         if response.status_code == 200:
             print(f"\n[{datetime.now()}] ✅ UP\n")
             log_status("UP")
-            url = "https://eportal.oauife.edu.ng/login.php"
-            response = requests.get(url)
-            soup = BeautifulSoup(response.text, "html.parser")
+            flags["down_alert_sent"] = False
+            save_flags()
 
-            # Example: check if 'Login' button or link exists
-            option_found = soup.find("option", attrs={"selected": True, "value": "2023"})
+            # Check login option
+            response = requests.get("https://eportal.oauife.edu.ng/login.php")
+            soup = BeautifulSoup(response.text, "html.parser")
+            option_found = soup.find("option", attrs={"selected": True, "value": "2024"})
 
             if option_found:
                 print("🔐✅ Login option detected!")
-                send_email("🔔 Portal Login Available", "The login option for 2023 is now live!")
+                if not flags["login_alert_sent"]:
+                    send_email("🔔 Portal Login Available", "The login option for 2024 is now live!")
+                    flags["login_alert_sent"] = True
+                    save_flags()
             else:
                 print("🔐❌ Login option not detected!")
+                flags["login_alert_sent"] = False
+                save_flags()
+
         else:
             print(f"[{datetime.now()}] ⚠️ DOWN - Status: {response.status_code}")
             log_status("DOWN", f"Status {response.status_code}")
+            if not flags["down_alert_sent"]:
+                send_email("🔔 Portal Down", "The portal is currently down.")
+                flags["down_alert_sent"] = True
+                save_flags()
+
     except Exception as e:
         print(f"[{datetime.now()}] ❌ DOWN - Error: {e}")
         log_status("DOWN", str(e))
+        if not flags["down_alert_sent"]:
+            send_email("🔔 Portal Down", "The portal is currently down.")
+            flags["down_alert_sent"] = True
+            save_flags()
 
-    time.sleep(60)  # wait 5 seconds before the next check
-
-
-
-
-
+    time.sleep(600)  # every 10 minutes

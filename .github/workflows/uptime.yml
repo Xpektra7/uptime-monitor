@@ -2,7 +2,7 @@ name: Portal Monitor
 
 on:
   schedule:
-    - cron: "*/1 * * * *"  # Every minute 
+    - cron: "*/10 * * * *"  # Every minute 
   workflow_dispatch:        # Manual trigger
 
 jobs:
