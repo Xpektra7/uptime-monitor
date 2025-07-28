@@ -1,5 +1,4 @@
 import requests
-import time
 from datetime import datetime
 from bs4 import BeautifulSoup
 import smtplib
@@ -9,8 +8,10 @@ import os
 import json
 from pathlib import Path
 
+# Ensure logs directory exists
 os.makedirs("logs", exist_ok=True)
-# Load .env
+
+# Load environment variables
 load_dotenv()
 email = os.environ.get("EMAIL_USER")
 password = os.environ.get("EMAIL_PASS")
@@ -38,7 +39,6 @@ if flags_file.exists():
                 flags.update(json.loads(content))
     except Exception:
         print("⚠️ Warning: flags.json is invalid. Resetting flags.")
-        pass
 
 def save_flags():
     with open(flags_file, "w") as f:
