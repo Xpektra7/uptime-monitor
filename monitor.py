@@ -9,6 +9,7 @@ import os
 import json
 from pathlib import Path
 
+os.makedirs("logs", exist_ok=True)
 # Load .env
 load_dotenv()
 email = os.environ.get("EMAIL_USER")
