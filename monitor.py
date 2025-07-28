@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 import smtplib
 from email.message import EmailMessage
 from dotenv import load_dotenv
-import notify2  # Add this import
 import os
 import json
 from pathlib import Path
@@ -31,11 +30,18 @@ def send_email(subject, body):
 # Desktop notifications
 
 
-def send_desktop_notification(title, message):
+if os.environ.get("CI") != "true":
+    import notify2
     notify2.init("Uptime Monitor")
-    n = notify2.Notification(title, message)
-    n.show()
-send_desktop_notification("🔔 Portal Login Available", "The login option for 2024 is now live!")
+
+    def send_desktop_notification(title, message):
+        n = notify2.Notification(title, message)
+        n.show()
+else:
+    def send_desktop_notification(title, message):
+        pass  # No-op on CI
+
+send_desktop_notification("🔔 Uptime Monitor", "Running Monitor...")
 
 # Flags
 flags_file = Path("flags.json")
