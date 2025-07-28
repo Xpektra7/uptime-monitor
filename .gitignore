@@ -1,3 +1,5 @@
 .env
 logs/uptime_log.csv
+logs/uptime_log.txt
 flags.json
+test.py

@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 import smtplib
 from email.message import EmailMessage
 from dotenv import load_dotenv
+import notify2  # Add this import
 import os
 import json
 from pathlib import Path
@@ -26,6 +27,14 @@ def send_email(subject, body):
     with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
         smtp.login(email, password)
         smtp.send_message(msg)
+
+# Desktop notifications
+
+
+def send_desktop_notification(title, message):
+    notify2.init("Uptime Monitor")
+    n = notify2.Notification(title, message)
+    n.show()
 
 # Flags
 flags_file = Path("flags.json")
@@ -72,6 +81,7 @@ def monitor():
                 print("🔐✅ Login option detected!")
                 if not flags["login_alert_sent"]:
                     send_email("🔔 Portal Login Available", "The login option for 2024 is now live!")
+                    send_desktop_notification("🔔 Portal Login Available", "The login option for 2024 is now live!")
                     flags["login_alert_sent"] = True
                     save_flags()
             else:

@@ -1,3 +1,4 @@
 requests
 beautifulsoup4
 python-dotenv
+notify2  # Add this line to include the notify2 package
