@@ -35,6 +35,7 @@ def send_desktop_notification(title, message):
     notify2.init("Uptime Monitor")
     n = notify2.Notification(title, message)
     n.show()
+send_desktop_notification("🔔 Portal Login Available", "The login option for 2024 is now live!")
 
 # Flags
 flags_file = Path("flags.json")
@@ -62,22 +63,29 @@ def log_status(status, info=""):
 
 # Monitor loop
 def monitor():
-    print(f"[{datetime.now()}] Starting monitor...")
+    print(f"[{datetime.now()}] Running monitor...")
     try:
         url = "https://eportal.oauife.edu.ng"
-        response = requests.get(url, timeout=10)
-        if response.status_code == 200:
-            print(f"\n[{datetime.now()}] ✅ UP\n")
+        res = requests.get(url, timeout=10)
+
+        if res.status_code == 200:
+            print(f"[{datetime.now()}] ✅ UP")
             log_status("UP")
-            flags["down_alert_sent"] = False
-            save_flags()
 
-            # Check login option
-            response = requests.get("https://eportal.oauife.edu.ng/login.php")
-            soup = BeautifulSoup(response.text, "html.parser")
-            option_found = soup.find("option", attrs={"selected": True, "value": "2024"})
+            # Notify if it was down before
+            if flags.get("was_down"):
+                send_email("✅ Portal Back Online", "The portal is now back online.")
+                send_desktop_notification("✅ Portal Back Online", "The portal is now back online.")
+                flags["was_down"] = False
+                flags["down_alert_sent"] = False
+                save_flags()
 
-            if option_found:
+            # Login check
+            res = requests.get("https://eportal.oauife.edu.ng/login.php")
+            soup = BeautifulSoup(res.text, "html.parser")
+            login_option = soup.find("option", attrs={"selected": True, "value": "2024"})
+
+            if login_option:
                 print("🔐✅ Login option detected!")
                 if not flags["login_alert_sent"]:
                     send_email("🔔 Portal Login Available", "The login option for 2024 is now live!")
@@ -88,28 +96,27 @@ def monitor():
                 print("🔐❌ Login option not detected!")
                 flags["login_alert_sent"] = False
                 save_flags()
-
         else:
-            print(f"[{datetime.now()}] ⚠️ DOWN - Status: {response.status_code}")
-            log_status("DOWN", f"Status {response.status_code}")
-            if not flags["down_alert_sent"]:
-                send_email("🔔 Portal Down", "The portal is currently down.")
-                flags["down_alert_sent"] = True
-                save_flags()
+            raise Exception(f"Status {res.status_code}")
 
     except Exception as e:
         print(f"[{datetime.now()}] ❌ DOWN - Error: {e}")
         log_status("DOWN", str(e))
         if not flags["down_alert_sent"]:
             send_email("🔔 Portal Down", "The portal is currently down.")
+            send_desktop_notification("🔔 Portal Down", "The portal is currently down.")
             flags["down_alert_sent"] = True
-            save_flags()
+        flags["was_down"] = True
+        save_flags()
+
+
 
 if __name__ == "__main__":
     while True:
         monitor()
-        # Uncomment the line below to run the monitor only once
+
+        # Continuous running:
+        # time.sleep(60)  # Check every 60 seconds
+
+        # For deployment:
         break
-        # If you want to run the monitor continuously, keep the while loop
-        # If you want to run the monitor only once, uncomment the break statement above
-        # and comment out the while loop.
