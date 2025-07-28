@@ -52,7 +52,8 @@ def log_status(status, info=""):
         f.write(f"{now},{status},{info}\n")
 
 # Monitor loop
-while True:
+def monitor():
+    print(f"[{datetime.now()}] Starting monitor...")
     try:
         url = "https://eportal.oauife.edu.ng"
         response = requests.get(url, timeout=10)
@@ -94,4 +95,11 @@ while True:
             flags["down_alert_sent"] = True
             save_flags()
 
-    time.sleep(600)  # every 10 minutes
+if __name__ == "__main__":
+    while True:
+        monitor()
+        # Uncomment the line below to run the monitor only once
+        break
+        # If you want to run the monitor continuously, keep the while loop
+        # If you want to run the monitor only once, uncomment the break statement above
+        # and comment out the while loop.
