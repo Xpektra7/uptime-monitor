@@ -110,7 +110,7 @@ def monitor():
         log_status("DOWN", str(e))
         if not flags["down_alert_sent"]:
             send_email("🔔 Portal Down", "The portal is currently down.")
-            send_desktop_notification("🔔 Portal Down", "The portal is currently down.")
+            send_desktop_notification("🔔 Portal Down", "The OAU e-portal is currently down.")
             flags["down_alert_sent"] = True
         flags["was_down"] = True
         save_flags()
