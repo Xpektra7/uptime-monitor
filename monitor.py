@@ -71,7 +71,7 @@ def log_status(status, info=""):
 def monitor():
     print(f"[{datetime.now()}] Running monitor...")
     try:
-        url = "https://eportal.oauife.edu.ng"
+        url = "https://eportal.oauife.edu.ng/login.php"
         res = requests.get(url, timeout=10)
 
         if res.status_code == 200:
